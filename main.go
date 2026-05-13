@@ -1,14 +1,13 @@
 package main
 
-import (
-	"flag"
-)
+// import (
+// 	"flag"
+// )
 
+// func main() {
+// 	port := flag.String("port", "5432", "Database port")
+// 	flag.Parse()
 
-func main() {
-	port := flag.String("port", "5432", "Database port")
-	flag.Parse()
-
-	db := engine.NewDatabase()
-	srv := server.NewTCPServer(*port, db)
-}
+// 	db := engine.NewDatabase()
+// 	srv := server.NewTCPServer(*port, db)
+// }
