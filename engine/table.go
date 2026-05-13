@@ -46,7 +46,6 @@ func (t *Table) Insert(values []interface{}) (int64, error) {
 	return row.ID, nil
 }
 
-
 func (t *Table) Select(columns []string, condition *Condition) ([]*Row, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
@@ -64,11 +63,11 @@ func (t *Table) Select(columns []string, condition *Condition) ([]*Row, error) {
 		}
 		if len(columns) == 1 && columns[0] == "*" {
 			result = append(result, row)
-		}else{
+		} else {
 			filteredRow := NewRow()
 			filteredRow.ID = row.ID
 			for _, col := range columns {
-				if val, ok  := row.Values[col]; ok {
+				if val, ok := row.Values[col]; ok {
 					filteredRow.Set(col, val)
 				}
 			}
@@ -78,8 +77,7 @@ func (t *Table) Select(columns []string, condition *Condition) ([]*Row, error) {
 	return result, nil
 }
 
-
-func (t *Table) Update(setValues map[string]interface{}, condition *Condition) (int, error){
+func (t *Table) Update(setValues map[string]interface{}, condition *Condition) (int, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -113,7 +111,6 @@ func (t *Table) Update(setValues map[string]interface{}, condition *Condition) (
 	return updated, nil
 }
 
-
 func (t *Table) Delete(condition *Condition) (int, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -139,7 +136,3 @@ func (t *Table) Delete(condition *Condition) (int, error) {
 	}
 	return deleted, nil
 }
-
-
-
-
