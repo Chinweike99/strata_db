@@ -1,5 +1,10 @@
 package engine
 
+import (
+	"fmt"
+	"sync"
+)
+
 type Table struct {
 	Name    string
 	Columns []Column
@@ -24,7 +29,7 @@ func NewTable(name string, columns []Column) *Table {
 
 func (t *Table) Insert(values []interface{}) (int64, error) {
 	if len(values) != len(t.Columns) {
-		return 0, fmt.Errorf("expected %d values, got %d", len(t.columns), len(values))
+		return 0, fmt.Errorf("expected %d values, got %d", len(t.Columns), len(values))
 	}
 
 	t.mu.Lock()
@@ -135,4 +140,73 @@ func (t *Table) Delete(condition *Condition) (int, error) {
 		delete(t.Rows, id)
 	}
 	return deleted, nil
+}
+
+
+func (t *Table) validateType(colType string, val interface{}) error {
+	switch colType {
+	case "int":
+		switch val.(type){
+		case int, int64, float64:
+			return nil
+		default:
+			return fmt.Errorf("expected int for column, got %T", val)
+		}
+	case "string":
+		if _, ok := val.(string); !ok {
+			return fmt.Errorf("expected string for column, got %T", val)
+		}
+		return nil
+	default:
+		return  fmt.Errorf("unknown column type: %s", colType)
+	}
+}
+
+
+func (t *Table) evaluateCondition(row *Row, cond *Condition) (bool, error) {
+    val, ok := row.Values[cond.Column]
+    if !ok {
+        return false, fmt.Errorf("column %s not found", cond.Column)
+    }
+    
+    switch cond.Operator {
+    case "=":
+        return fmt.Sprintf("%v", val) == fmt.Sprintf("%v", cond.Value), nil
+    case "!=":
+        return fmt.Sprintf("%v", val) != fmt.Sprintf("%v", cond.Value), nil
+    case ">":
+        return compareNumbers(val, cond.Value) > 0, nil
+    case "<":
+        return compareNumbers(val, cond.Value) < 0, nil
+    case ">=":
+        return compareNumbers(val, cond.Value) >= 0, nil
+    case "<=":
+        return compareNumbers(val, cond.Value) <= 0, nil
+    default:
+        return false, fmt.Errorf("unknown operator: %s", cond.Operator)
+    }
+}
+
+func compareNumbers(a, b interface{}) int {
+    aFloat := toFloat64(a)
+    bFloat := toFloat64(b)
+    if aFloat < bFloat {
+        return -1
+    } else if aFloat > bFloat {
+        return 1
+    }
+    return 0
+}
+
+func toFloat64(val interface{}) float64 {
+    switch v := val.(type) {
+    case int:
+        return float64(v)
+    case int64:
+        return float64(v)
+    case float64:
+        return v
+    default:
+        return 0
+    }
 }
